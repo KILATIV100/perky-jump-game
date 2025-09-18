@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <script src="index.js" charset="utf-8"></script>
+    <link rel="stylesheet" href="style.css"></link>
+    <title>Perky Jump</title>
+  </head>
+  <body>
+    <div class="game-container">
+      
+      <div id="main-menu">
+        <h1>Perky Jump</h1>
+        <button id="start-button">ГРАТИ</button>
+        <button id="leaderboard-button">ТАБЛИЦЯ РЕКОРДІВ</button>
+        <button id="settings-button">НАЛАШТУВАННЯ</button>
+      </div>
+
+      <div class="grid" style="display: none;">
+        <div id="score">0</div>
+        <div id="lives-hud">
+          <img src="bonus_heart.png" alt="Life" class="heart">
+          <img src="bonus_heart.png" alt="Life" class="heart">
+          <img src="bonus_heart.png" alt="Life" class="heart">
+        </div>
+        <div class="doodler"></div>
+      </div>
+      
+      <div id="game-over-screen" style="display: none;">
+        <h2>GAME OVER</h2>
+        <p>Ваш рахунок: <span id="final-score">0</span></p>
+        <button id="restart-button">СПРОБУВАТИ ЗНОВУ</button>
+        <button id="share-button">ПОДІЛИТИСЯ РЕЗУЛЬТАТОМ</button>
+        <button id="main-menu-button">ГОЛОВНЕ МЕНЮ</button>
+      </div>
+
+      <div id="leaderboard-screen" style="display: none;">
+        <h2>ТАБЛИЦЯ РЕКОРДІВ</h2>
+        <ul id="leaderboard-list">
+          </ul>
+        <button id="back-to-menu-button">ГОЛОВНЕ МЕНЮ</button>
+      </div>
+      
+      <div id="settings-screen" style="display: none;">
+        <h2>НАЛАШТУВАННЯ</h2>
+        <button id="back-from-settings">НАЗАД</button>
+      </div>
+
+    </div>
+  </body>
+</html>
