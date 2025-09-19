@@ -110,7 +110,6 @@
             gap: 5px;
         }
 
-        /* Стилі для зображення серця */
         .heart-icon {
             width: 25px;
             height: 25px;
@@ -118,8 +117,8 @@
         }
 
         .doodler {
-            width: 60px; /* Ширина робота */
-            height: 60px; /* Висота робота */
+            width: 60px;
+            height: 60px;
             position: absolute;
             z-index: 5;
         }
@@ -127,7 +126,7 @@
         .doodler img {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Забезпечує, що зображення повністю поміщається */
+            object-fit: contain;
         }
 
         .platform {
@@ -155,26 +154,34 @@
 
         .game-object {
             position: absolute;
-            border-radius: 50%;
             z-index: 6;
         }
 
-        .game-object-bug {
+        .game-object-bug1 {
             width: 40px;
             height: 40px;
-            background: linear-gradient(45deg, #8e44ad, #9b59b6);
+            background-image: url('https://i.imgur.com/bW5yM3w.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .game-object-bug2 {
+            width: 40px;
+            height: 40px;
+            background-image: url('https://i.imgur.com/x49pGv9.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
         }
 
         .game-object-heart {
             width: 30px;
             height: 30px;
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-        }
-
-        .game-object-magnet {
-            width: 35px;
-            height: 35px;
-            background: linear-gradient(45deg, #f39c12, #e67e22);
+            background-image: url('https://i.imgur.com/qg9bF5P.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
         }
 
         .gyro-info {
@@ -289,15 +296,20 @@
         let gameSpeed = 4;
         let isGameStarted = false;
         let lastSpeedIncreaseScore = 0;
+        let heartsSpawned = 0;
+        let bug1Spawned = 0;
+        let bug2Spawned = 0;
 
         // Налаштування
         let soundEnabled = true;
         let gyroEnabled = false;
         let leaderboard = [];
         
-        // Посилання на зображення робота та серця
+        // Посилання на зображення
         const doodlerImageSrc = 'perky_bot.png';
-        const heartImageSrc = 'bonus_heart.png'; // Посилання на зображення серця
+        const heartImageSrc = 'bonus_heart.png';
+        const bug1ImageSrc = 'enemy_virus.png'; // Static bug
+        const bug2ImageSrc = 'enemy_bug.png'; // Moving bug
 
         // Platform клас
         class Platform {
@@ -330,8 +342,24 @@
                 this.type = type;
                 this.visual = document.createElement('div');
                 this.visual.classList.add('game-object', `game-object-${this.type}`);
+                
+                // Встановлення зображення
+                if (this.type === 'heart') {
+                    this.visual.style.backgroundImage = `url('${heartImageSrc}')`;
+                } else if (this.type === 'bug1') {
+                    this.visual.style.backgroundImage = `url('${bug1ImageSrc}')`;
+                } else if (this.type === 'bug2') {
+                    this.visual.style.backgroundImage = `url('${bug2ImageSrc}')`;
+                    this.direction = Math.random() > 0.5 ? 'right' : 'left'; // Для рухомого вірусу
+                }
+                
+                this.visual.style.backgroundSize = 'contain';
+                this.visual.style.backgroundRepeat = 'no-repeat';
+                this.visual.style.backgroundPosition = 'center';
+
                 this.visual.style.bottom = this.bottom + 'px';
                 this.visual.style.left = this.left + 'px';
+                
                 grid.appendChild(this.visual);
             }
         }
@@ -365,7 +393,7 @@
             doodler.classList.add('doodler');
             
             const doodlerImg = document.createElement('img');
-            doodlerImg.src = doodlerImageSrc;
+            doodlerImg.src = 'https://i.imgur.com/k91Wl23.png';
             doodlerImg.alt = 'Doodler Robot';
             doodler.appendChild(doodlerImg);
 
@@ -388,7 +416,7 @@
                 const heart = document.createElement('img');
                 heart.src = heartImageSrc;
                 heart.alt = 'Life';
-                heart.classList.add('heart-icon'); // Додаємо клас для стилізації
+                heart.classList.add('heart-icon');
                 document.getElementById('lives-hud').appendChild(heart);
             }
         }
@@ -427,7 +455,7 @@
             isJumping = false;
             
             downTimerId = setInterval(function() {
-                doodlerBottomSpace -= gameSpeed; // Швидкість падіння залежить від gameSpeed
+                doodlerBottomSpace -= gameSpeed;
                 doodler.style.bottom = doodlerBottomSpace + 'px';
                 
                 if (doodlerBottomSpace <= 0) {
@@ -480,7 +508,7 @@
                         ((doodlerLeftSpace + 60) >= obj.left) &&
                         (doodlerLeftSpace <= (obj.left + 50))
                     ) {
-                        if (obj.type === 'bug') {
+                        if (obj.type === 'bug1' || obj.type === 'bug2') {
                             lives--;
                             updateLives();
                             playSound(150, 400);
@@ -501,15 +529,15 @@
 
         function createPlatforms() {
             platforms = [];
+            const platformGap = 600 / 5;
             for (let i = 0; i < 5; i++) {
-                let platGap = 600 / 5;
-                let newPlatBottom = 100 + i * platGap;
+                let newPlatBottom = 100 + i * platformGap;
                 let newPlatformLeft = Math.random() * 315;
                 let newPlatform = new Platform(newPlatBottom, newPlatformLeft);
                 platforms.push(newPlatform);
 
                 if (Math.random() > 0.7) {
-                    const objectType = Math.random() > 0.5 ? 'bug' : 'heart';
+                    const objectType = Math.random() > 0.5 ? 'bug1' : 'heart';
                     let newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, objectType);
                     gameObjects.push(newGameObject);
                 }
@@ -541,25 +569,68 @@
                     platforms.shift();
                     score++;
                     updateScore();
+                    
                     let newPlatLeft = Math.random() * 315;
-                    let newPlatform = new Platform(600, newPlatLeft);
+                    let newPlatBottom = 600;
+                    let newPlatform = new Platform(newPlatBottom, newPlatLeft);
                     platforms.push(newPlatform);
+
+                    // Додавання об'єктів за новою логікою
+                    if (score % 100 === 0) {
+                        if (heartsSpawned < 1) {
+                            const newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, 'heart');
+                            gameObjects.push(newGameObject);
+                            heartsSpawned++;
+                        } else if (bug1Spawned < 3) {
+                            const newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, 'bug1');
+                            gameObjects.push(newGameObject);
+                            bug1Spawned++;
+                        } else if (bug2Spawned < 5) {
+                            const newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, 'bug2');
+                            gameObjects.push(newGameObject);
+                            bug2Spawned++;
+                        }
+                    } else {
+                        // Якщо об'єкти за 100 очок вже з'явились, скидаємо лічильники
+                        heartsSpawned = 0;
+                        bug1Spawned = 0;
+                        bug2Spawned = 0;
+                    }
                 }
             });
 
+            // Рух та видалення об'єктів
             gameObjects.forEach(obj => {
+                if (obj.type === 'bug2') {
+                    if (obj.direction === 'right') {
+                        obj.left += 1;
+                    } else {
+                        obj.left -= 1;
+                    }
+                    if (obj.left >= 315) {
+                        obj.direction = 'left';
+                    } else if (obj.left <= 0) {
+                        obj.direction = 'right';
+                    }
+                    obj.visual.style.left = obj.left + 'px';
+                }
+                
                 obj.bottom -= gameSpeed;
                 obj.visual.style.bottom = obj.bottom + 'px';
+
+                if (obj.bottom < 0) {
+                    obj.visual.remove();
+                    gameObjects.splice(gameObjects.indexOf(obj), 1);
+                }
             });
         }
 
         function moveDoodler() {
-             // Збільшена чутливість керування
              if (isGoingLeft) {
-                doodlerLeftSpace -= 9; // Збільшено швидкість руху
+                doodlerLeftSpace -= 9;
             }
             if (isGoingRight) {
-                doodlerLeftSpace += 9; // Збільшено швидкість руху
+                doodlerLeftSpace += 9;
             }
 
             if (doodlerLeftSpace <= 0) {
@@ -711,8 +782,11 @@
             score = 0;
             isGameOver = false;
             isGameStarted = true;
-            gameSpeed = 4; // Скидаємо швидкість на початкову при старті нової гри
+            gameSpeed = 4;
             lastSpeedIncreaseScore = 0;
+            heartsSpawned = 0;
+            bug1Spawned = 0;
+            bug2Spawned = 0;
 
             const gameElements = grid.querySelectorAll('.doodler, .platform, .game-object, #score, #lives-hud, .gyro-info');
             gameElements.forEach(el => el.remove());
