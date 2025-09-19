@@ -1,51 +1,803 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
-  <head>
+<html lang="uk">
+<head>
     <meta charset="utf-8">
-    <script src="index.js" charset="utf-8"></script>
-    <link rel="stylesheet" href="style.css"></link>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perky Jump</title>
-  </head>
-  <body>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .game-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .grid {
+            width: min(400px, 90vw);
+            height: min(600px, 80vh);
+            background: linear-gradient(180deg, #ff9a56, #c44569);
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+            border: 3px solid #2c2c54;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(44, 44, 84, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: white;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #00ffc8;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        button {
+            background: linear-gradient(45deg, #00ffc8, #00a080);
+            border: none;
+            color: #2c2c54;
+            padding: 15px 25px;
+            margin: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 25px;
+            min-width: 200px;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button.off {
+            background: #c0392b;
+            color: white;
+        }
+
+        #score {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 10;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
+
+        #lives-hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            display: flex;
+            gap: 5px;
+        }
+
+        .heart {
+            width: 25px;
+            height: 25px;
+            background: #e74c3c;
+            border-radius: 50%;
+        }
+
+        .doodler {
+            width: 60px; /* Ширина робота */
+            height: 60px; /* Висота робота */
+            position: absolute;
+            z-index: 5;
+            /* Забираємо фоновий градієнт, оскільки тепер використовуємо зображення */
+        }
+
+        .doodler img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Забезпечує, що зображення повністю поміщається */
+        }
+
+        .platform {
+            width: 85px;
+            height: 15px;
+            position: absolute;
+            border-radius: 8px;
+        }
+
+        .platform-green {
+            background: linear-gradient(45deg, #2ed573, #1e824c);
+        }
+
+        .platform-red {
+            background: linear-gradient(45deg, #ff3838, #c0392b);
+        }
+
+        .platform-blue {
+            background: linear-gradient(45deg, #3742fa, #2f3542);
+        }
+
+        .platform-yellow {
+            background: linear-gradient(45deg, #ffa502, #ff6348);
+        }
+
+        .game-object {
+            position: absolute;
+            border-radius: 50%;
+            z-index: 6;
+        }
+
+        .game-object-bug {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #8e44ad, #9b59b6);
+        }
+
+        .game-object-heart {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .game-object-magnet {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+        }
+
+        .gyro-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        .gyro-info.active {
+            color: #00ffc8;
+        }
+
+        #leaderboard-list {
+            list-style: none;
+            max-height: 300px;
+            overflow-y: auto;
+            width: 80%;
+        }
+
+        #leaderboard-list li {
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            .grid {
+                width: 95vw;
+                height: 75vh;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            button {
+                min-width: 150px;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
     <div class="game-container">
-      
-      <div id="main-menu">
-        <h1>Perky Jump</h1>
-        <button id="start-button">ГРАТИ</button>
-        <button id="leaderboard-button">ТАБЛИЦЯ РЕКОРДІВ</button>
-        <button id="settings-button">НАЛАШТУВАННЯ</button>
-      </div>
+        <div class="grid" id="grid">
+            <div id="main-menu" class="screen">
+                <h1>Perky Jump</h1>
+                <button onclick="startGame()">ГРАТИ</button>
+                <button onclick="showScreen('leaderboard')">РЕКОРДИ</button>
+                <button onclick="showScreen('settings')">НАЛАШТУВАННЯ</button>
+            </div>
 
-      <div class="grid" style="display: none;">
-        <div id="score">0</div>
-        <div id="lives-hud">
-          <img src="bonus_heart.png" alt="Life" class="heart">
-          <img src="bonus_heart.png" alt="Life" class="heart">
-          <img src="bonus_heart.png" alt="Life" class="heart">
+            <div id="game-over-screen" class="screen" style="display: none;">
+                <h2>GAME OVER</h2>
+                <p style="font-size: 18px; margin: 20px 0;">
+                    Ваш рахунок: <span id="final-score">0</span>
+                </p>
+                <button onclick="startGame()">СПРОБУВАТИ ЗНОВУ</button>
+                <button onclick="shareScore()">ПОДІЛИТИСЯ</button>
+                <button onclick="showScreen('main-menu')">ГОЛОВНЕ МЕНЮ</button>
+            </div>
+
+            <div id="leaderboard" class="screen" style="display: none;">
+                <h2>РЕКОРДИ</h2>
+                <ul id="leaderboard-list"></ul>
+                <button onclick="clearRecords()">ОЧИСТИТИ</button>
+                <button onclick="showScreen('main-menu')">НАЗАД</button>
+            </div>
+
+            <div id="settings" class="screen" style="display: none;">
+                <h2>НАЛАШТУВАННЯ</h2>
+                
+                <div style="margin: 20px 0;">
+                    <p style="margin-bottom: 10px;">Звук</p>
+                    <button id="sound-btn" onclick="toggleSound()">УВІМКНЕНО</button>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <p style="margin-bottom: 10px;">Гіроскоп</p>
+                    <button id="gyro-btn" onclick="toggleGyro()" class="off">ВИМКНЕНО</button>
+                </div>
+                
+                <button onclick="showScreen('main-menu')">НАЗАД</button>
+            </div>
         </div>
-        <div class="doodler"></div>
-      </div>
-      
-      <div id="game-over-screen" style="display: none;">
-        <h2>GAME OVER</h2>
-        <p>Ваш рахунок: <span id="final-score">0</span></p>
-        <button id="restart-button">СПРОБУВАТИ ЗНОВУ</button>
-        <button id="share-button">ПОДІЛИТИСЯ РЕЗУЛЬТАТОМ</button>
-        <button id="main-menu-button">ГОЛОВНЕ МЕНЮ</button>
-      </div>
-
-      <div id="leaderboard-screen" style="display: none;">
-        <h2>ТАБЛИЦЯ РЕКОРДІВ</h2>
-        <ul id="leaderboard-list">
-          </ul>
-        <button id="back-to-menu-button">ГОЛОВНЕ МЕНЮ</button>
-      </div>
-      
-      <div id="settings-screen" style="display: none;">
-        <h2>НАЛАШТУВАННЯ</h2>
-        <button id="back-from-settings">НАЗАД</button>
-      </div>
-
     </div>
-  </body>
+
+    <script>
+        // Глобальні змінні
+        let grid = document.getElementById('grid');
+        let doodler;
+        let lives = 3;
+        let score = 0;
+        let isGameOver = false;
+        let platforms = [];
+        let gameObjects = [];
+        let doodlerLeftSpace;
+        let doodlerBottomSpace;
+        let startPoint;
+        let upTimerId;
+        let downTimerId;
+        let gameLoopId;
+        let isJumping = true;
+        let isGoingLeft = false;
+        let isGoingRight = false;
+        let gameSpeed = 4;
+        let isGameStarted = false;
+
+        // Налаштування
+        let soundEnabled = true;
+        let gyroEnabled = false;
+        let leaderboard = [];
+        
+        // Посилання на зображення робота
+        const doodlerImageSrc = 'perky_bot.png'; // Це посилання на зображення, яке ви надали
+
+        // Platform клас
+        class Platform {
+            constructor(newPlatBottom, newPlatLeft) {
+                this.left = newPlatLeft;
+                this.bottom = newPlatBottom;
+                this.visual = document.createElement('div');
+                this.type = this.getRandomPlatformType();
+                this.visual.classList.add('platform', `platform-${this.type}`);
+                this.visual.style.left = this.left + 'px';
+                this.visual.style.bottom = this.bottom + 'px';
+                grid.appendChild(this.visual);
+
+                if (this.type === 'red') {
+                    this.direction = Math.random() > 0.5 ? 'right' : 'left';
+                }
+            }
+
+            getRandomPlatformType() {
+                const types = ['green', 'green', 'green', 'red', 'blue', 'yellow'];
+                return types[Math.floor(Math.random() * types.length)];
+            }
+        }
+
+        // GameObject клас
+        class GameObject {
+            constructor(bottom, left, type) {
+                this.bottom = bottom;
+                this.left = left;
+                this.type = type;
+                this.visual = document.createElement('div');
+                this.visual.classList.add('game-object', `game-object-${this.type}`);
+                this.visual.style.bottom = this.bottom + 'px';
+                this.visual.style.left = this.left + 'px';
+                grid.appendChild(this.visual);
+            }
+        }
+
+        // Звук
+        function playSound(frequency, duration = 100) {
+            if (!soundEnabled) return;
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = 'square';
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + duration / 1000);
+            } catch(e) {
+                console.log('Звук не підтримується');
+            }
+        }
+
+        function createDoodler() {
+            doodler = document.createElement('div');
+            doodler.classList.add('doodler');
+            
+            // Створюємо зображення робота
+            const doodlerImg = document.createElement('img');
+            doodlerImg.src = doodlerImageSrc;
+            doodlerImg.alt = 'Doodler Robot';
+            doodler.appendChild(doodlerImg);
+
+            grid.appendChild(doodler);
+            doodler.style.left = doodlerLeftSpace + 'px';
+            doodler.style.bottom = doodlerBottomSpace + 'px';
+        }
+
+        function updateLives() {
+            const livesHud = document.getElementById('lives-hud');
+            if (livesHud) {
+                livesHud.innerHTML = '';
+            } else {
+                const newLivesHud = document.createElement('div');
+                newLivesHud.id = 'lives-hud';
+                grid.appendChild(newLivesHud);
+            }
+            
+            for (let i = 0; i < lives; i++) {
+                const heart = document.createElement('div');
+                heart.classList.add('heart');
+                document.getElementById('lives-hud').appendChild(heart);
+            }
+        }
+
+        function updateScore() {
+            let scoreElement = document.getElementById('score');
+            if (!scoreElement) {
+                scoreElement = document.createElement('div');
+                scoreElement.id = 'score';
+                grid.appendChild(scoreElement);
+            }
+            scoreElement.textContent = score;
+        }
+
+        function jump(height = 200) {
+            clearInterval(downTimerId);
+            isJumping = true;
+            playSound(400, 150);
+            
+            upTimerId = setInterval(function() {
+                doodlerBottomSpace += 20;
+                doodler.style.bottom = doodlerBottomSpace + 'px';
+                if (doodlerBottomSpace > startPoint + height) {
+                    fall();
+                }
+            }, 30);
+        }
+
+        function fall() {
+            clearInterval(upTimerId);
+            isJumping = false;
+            
+            downTimerId = setInterval(function() {
+                doodlerBottomSpace -= 5;
+                doodler.style.bottom = doodlerBottomSpace + 'px';
+                
+                if (doodlerBottomSpace <= 0) {
+                    lives--;
+                    updateLives();
+                    playSound(200, 300);
+                    if (lives > 0) {
+                        doodlerBottomSpace = platforms[0].bottom + 20;
+                        startPoint = doodlerBottomSpace;
+                        jump();
+                    } else {
+                        gameOver();
+                    }
+                }
+
+                // Перевірка колізій з платформами
+                platforms.forEach((platform, index) => {
+                    if (
+                        (doodlerBottomSpace >= platform.bottom) &&
+                        (doodlerBottomSpace <= (platform.bottom + 15)) &&
+                        ((doodlerLeftSpace + 60) >= platform.left) && // 60 - ширина doodler
+                        (doodlerLeftSpace <= (platform.left + 85)) && // 85 - ширина платформи
+                        !isJumping
+                    ) {
+                        startPoint = doodlerBottomSpace;
+                        if (platform.type === 'yellow') {
+                            jump(250);
+                            playSound(600, 200);
+                        } else {
+                            jump();
+                        }
+                        isJumping = true;
+
+                        if (platform.type === 'blue') {
+                            setTimeout(() => {
+                                if (platform.visual && platform.visual.parentNode) {
+                                    platform.visual.remove();
+                                    platforms.splice(index, 1);
+                                }
+                            }, 500);
+                        }
+                    }
+                });
+
+                // Перевірка колізій з об'єктами
+                gameObjects.forEach((obj, index) => {
+                    if (
+                        (doodlerBottomSpace + 60 >= obj.bottom) && // 60 - висота doodler
+                        (doodlerBottomSpace <= (obj.bottom + 50)) && // 50 - приблизна висота об'єкта
+                        ((doodlerLeftSpace + 60) >= obj.left) && // 60 - ширина doodler
+                        (doodlerLeftSpace <= (obj.left + 50)) // 50 - приблизна ширина об'єкта
+                    ) {
+                        if (obj.type === 'bug') {
+                            lives--;
+                            updateLives();
+                            playSound(150, 400);
+                        } else if (obj.type === 'heart') {
+                            if (lives < 3) {
+                                lives++;
+                                updateLives();
+                            }
+                            playSound(800, 200);
+                        }
+                        
+                        obj.visual.remove();
+                        gameObjects.splice(index, 1);
+                    }
+                });
+            }, 20);
+        }
+
+        function createPlatforms() {
+            platforms = [];
+            for (let i = 0; i < 5; i++) {
+                let platGap = 600 / 5;
+                let newPlatBottom = 100 + i * platGap;
+                let newPlatformLeft = Math.random() * 315;
+                let newPlatform = new Platform(newPlatBottom, newPlatformLeft);
+                platforms.push(newPlatform);
+
+                if (Math.random() > 0.7) {
+                    const objectType = Math.random() > 0.5 ? 'bug' : 'heart';
+                    let newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, objectType);
+                    gameObjects.push(newGameObject);
+                }
+            }
+        }
+
+        function movePlatforms() {
+            platforms.forEach(platform => {
+                if (platform.type === 'red') {
+                    if (platform.direction === 'right') {
+                        platform.left += 1;
+                    } else {
+                        platform.left -= 1;
+                    }
+                    if (platform.left >= 315) {
+                        platform.direction = 'left';
+                    } else if (platform.left <= 0) {
+                        platform.direction = 'right';
+                    }
+                    platform.visual.style.left = platform.left + 'px';
+                }
+
+                platform.bottom -= gameSpeed;
+                platform.visual.style.bottom = platform.bottom + 'px';
+
+                if (platform.bottom < 10) {
+                    let firstPlatform = platforms[0].visual;
+                    firstPlatform.remove();
+                    platforms.shift();
+                    score++;
+                    updateScore();
+                    let newPlatLeft = Math.random() * 315;
+                    let newPlatform = new Platform(600, newPlatLeft);
+                    platforms.push(newPlatform);
+                }
+            });
+
+            gameObjects.forEach(obj => {
+                obj.bottom -= gameSpeed;
+                obj.visual.style.bottom = obj.bottom + 'px';
+            });
+        }
+
+        function moveDoodler() {
+             if (isGoingLeft) {
+                doodlerLeftSpace -= 5;
+            }
+            if (isGoingRight) {
+                doodlerLeftSpace += 5;
+            }
+
+            if (doodlerLeftSpace <= 0) {
+                doodlerLeftSpace = 0;
+            }
+            if (doodlerLeftSpace >= 320) { // Ширина grid (400) - ширина doodler (60) = 340, але краще 320-330 для запасу
+                doodlerLeftSpace = 320;
+            }
+
+            doodler.style.left = doodlerLeftSpace + 'px';
+        }
+
+        // Управління
+        function control(e) {
+            if (e.key === 'ArrowLeft') {
+                isGoingLeft = true;
+            } else if (e.key === 'ArrowRight') {
+                isGoingRight = true;
+            }
+        }
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft') {
+                isGoingLeft = false;
+            } else if (e.key === 'ArrowRight') {
+                isGoingRight = false;
+            }
+        });
+
+        // Управління дотиком
+        document.addEventListener('touchstart', (e) => {
+            if (!isGameStarted) return;
+            if (e.touches[0].clientX < window.innerWidth / 2) {
+                isGoingLeft = true;
+                isGoingRight = false;
+            } else {
+                isGoingRight = true;
+                isGoingLeft = false;
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            isGoingLeft = false;
+            isGoingRight = false;
+        });
+
+        // Гіроскоп
+        function handleDeviceOrientation(event) {
+            if (!gyroEnabled || isGameOver) return;
+            
+            const gamma = event.gamma;
+            const threshold = 15;
+            
+            isGoingLeft = false;
+            isGoingRight = false;
+            
+            if (gamma < -threshold) {
+                isGoingLeft = true;
+            } else if (gamma > threshold) {
+                isGoingRight = true;
+            }
+        }
+
+        async function toggleGyro() {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                try {
+                    const permission = await DeviceOrientationEvent.requestPermission();
+                    if (permission !== 'granted') {
+                        alert('Дозвіл на гіроскоп відхилено');
+                        return;
+                    }
+                } catch (error) {
+                    alert('Гіроскоп не підтримується');
+                    return;
+                }
+            }
+
+            gyroEnabled = !gyroEnabled;
+            const btn = document.getElementById('gyro-btn');
+            
+            if (gyroEnabled) {
+                btn.textContent = 'УВІМКНЕНО';
+                btn.classList.remove('off');
+                window.addEventListener('deviceorientation', handleDeviceOrientation);
+                updateGyroStatus();
+            } else {
+                btn.textContent = 'ВИМКНЕНО';
+                btn.classList.add('off');
+                window.removeEventListener('deviceorientation', handleDeviceOrientation);
+                updateGyroStatus();
+            }
+        }
+
+        function updateGyroStatus() {
+            let gyroInfo = document.querySelector('.gyro-info');
+            if (!gyroInfo) {
+                gyroInfo = document.createElement('div');
+                gyroInfo.className = 'gyro-info';
+                grid.appendChild(gyroInfo);
+            }
+            gyroInfo.textContent = gyroEnabled ? 'Гіроскоп: ON' : 'Гіроскоп: OFF';
+            gyroInfo.className = gyroEnabled ? 'gyro-info active' : 'gyro-info';
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-btn');
+            if (soundEnabled) {
+                btn.textContent = 'УВІМКНЕНО';
+                btn.classList.remove('off');
+            } else {
+                btn.textContent = 'ВИМКНЕНО';
+                btn.classList.add('off');
+            }
+            playSound(440, 100);
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            isGameStarted = false;
+            clearInterval(upTimerId);
+            clearInterval(downTimerId);
+            clearInterval(gameLoopId);
+            
+            document.removeEventListener('keydown', control);
+            window.removeEventListener('deviceorientation', handleDeviceOrientation); // Вимкнути гіроскоп при закінченні гри
+            
+            // Додати до рекордів
+            leaderboard.push({
+                score: score,
+                date: new Date().toLocaleDateString('uk-UA')
+            });
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard = leaderboard.slice(0, 10);
+            
+            playSound(100, 800);
+            document.getElementById('final-score').textContent = score;
+            showScreen('game-over-screen');
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.style.display = 'none';
+            });
+            document.getElementById(screenId).style.display = 'flex';
+        }
+
+        function startGame() {
+            // Скинути стан гри
+            lives = 3;
+            score = 0;
+            isGameOver = false;
+            isGameStarted = true;
+
+            // Очистити сітку від попередніх елементів
+            const gameElements = grid.querySelectorAll('.doodler, .platform, .game-object, #score, #lives-hud, .gyro-info');
+            gameElements.forEach(el => el.remove());
+            platforms = [];
+            gameObjects = [];
+
+            clearInterval(upTimerId);
+            clearInterval(downTimerId);
+            clearInterval(gameLoopId);
+            
+            // Приховати всі екрани
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.style.display = 'none';
+            });
+            
+            doodlerLeftSpace = 170; // Початкова позиція Doodler
+            doodlerBottomSpace = 100; // Початкова позиція Doodler
+            startPoint = 100; // Початкова точка для стрибка
+            
+            createDoodler();
+            updateLives();
+            updateScore();
+            updateGyroStatus();
+            createPlatforms();
+            
+            gameLoopId = setInterval(function() {
+                if (!isGameOver) {
+                    movePlatforms();
+                    moveDoodler();
+                }
+            }, 30);
+            
+            jump(); // Перший стрибок для старту гри
+            
+            document.addEventListener('keydown', control);
+            if (gyroEnabled) {
+                window.addEventListener('deviceorientation', handleDeviceOrientation);
+            }
+        }
+
+        function updateLeaderboard() {
+            const list = document.getElementById('leaderboard-list');
+            list.innerHTML = '';
+            
+            if (leaderboard.length === 0) {
+                list.innerHTML = '<li style="opacity: 0.7;">Поки немає рекордів</li>';
+            } else {
+                leaderboard.forEach((entry, index) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `${index + 1}. ${entry.score} очок (${entry.date})`;
+                    if (index < 3) {
+                        li.style.color = ['#ffd700', '#c0c0c0', '#cd7f32'][index];
+                        li.style.fontWeight = 'bold';
+                    }
+                    list.appendChild(li);
+                });
+            }
+        }
+
+        function clearRecords() {
+            if (confirm('Очистити всі рекорди?')) {
+                leaderboard = [];
+                updateLeaderboard();
+            }
+        }
+
+        function shareScore() {
+            const text = `Я набрав ${score} очок у грі Perky Jump!`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Perky Jump',
+                    text: text
+                });
+            } else if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Результат скопійовано!');
+                });
+            } else {
+                alert(text);
+            }
+        }
+
+        // Показати лідерборд при відкритті
+        document.addEventListener('click', function(e) {
+            if (e.target.onclick && e.target.onclick.toString().includes('leaderboard')) {
+                updateLeaderboard();
+            }
+        });
+
+        // Початкова ініціалізація
+        showScreen('main-menu');
+    </script>
+</body>
 </html>
