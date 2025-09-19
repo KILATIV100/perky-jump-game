@@ -539,6 +539,17 @@
         }
 
         function movePlatforms() {
+            // Фільтруємо об'єкти, щоб видалити ті, що вийшли за межі екрана
+            gameObjects = gameObjects.filter(obj => {
+                if (obj.bottom > 0) {
+                    return true;
+                } else {
+                    obj.visual.remove();
+                    return false;
+                }
+            });
+
+            // Рух платформ
             platforms.forEach(platform => {
                 if (platform.type === 'red') {
                     if (platform.direction === 'right') {
@@ -556,51 +567,38 @@
 
                 platform.bottom -= gameSpeed;
                 platform.visual.style.bottom = platform.bottom + 'px';
-
-                if (platform.bottom < 10) {
-                    let firstPlatform = platforms[0].visual;
-                    firstPlatform.remove();
-                    platforms.shift();
-                    score++;
-                    updateScore();
-                    
-                    let newPlatLeft = Math.random() * 315;
-                    let newPlatBottom = 600;
-                    let newPlatform = new Platform(newPlatBottom, newPlatLeft);
-                    platforms.push(newPlatform);
-
-                    // Додавання об'єктів за новою логікою
-                    if (score > 5) {
-                        if (score % 100 === 0) {
-                            if (heartsSpawned < 1) {
-                                const newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, 'heart');
-                                gameObjects.push(newGameObject);
-                                heartsSpawned++;
-                            }
-                        }
-                        if (score % 100 === 0) {
-                            if (bug1Spawned < 3) {
-                                const newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, 'bug1');
-                                gameObjects.push(newGameObject);
-                                bug1Spawned++;
-                            }
-                        }
-                        if (score % 100 === 0) {
-                            if (bug2Spawned < 5) {
-                                const newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, 'bug2');
-                                gameObjects.push(newGameObject);
-                                bug2Spawned++;
-                            }
-                        }
-                    }
-
-                    if (score % 100 !== 0) {
-                        heartsSpawned = 0;
-                        bug1Spawned = 0;
-                        bug2Spawned = 0;
+            });
+            
+            // Видаляємо старі платформи і додаємо нові
+            if (platforms.length > 0 && platforms[0].bottom < 10) {
+                let firstPlatform = platforms.shift();
+                firstPlatform.visual.remove();
+                score++;
+                updateScore();
+                
+                let newPlatLeft = Math.random() * 315;
+                let newPlatBottom = 600;
+                let newPlatform = new Platform(newPlatBottom, newPlatLeft);
+                platforms.push(newPlatform);
+                
+                // Додавання об'єктів за новою логікою
+                if (score >= 5) {
+                    const spawnChance = Math.random();
+                    if (score % 100 === 0 && heartsSpawned < 1 && spawnChance < 0.2) {
+                        const newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, 'heart');
+                        gameObjects.push(newGameObject);
+                        heartsSpawned++;
+                    } else if (bug1Spawned < 3 && spawnChance >= 0.2 && spawnChance < 0.5) {
+                        const newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, 'bug1');
+                        gameObjects.push(newGameObject);
+                        bug1Spawned++;
+                    } else if (bug2Spawned < 5 && spawnChance >= 0.5) {
+                        const newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, 'bug2');
+                        gameObjects.push(newGameObject);
+                        bug2Spawned++;
                     }
                 }
-            });
+            }
 
             // Рух та видалення об'єктів
             gameObjects.forEach(obj => {
@@ -620,11 +618,6 @@
                 
                 obj.bottom -= gameSpeed;
                 obj.visual.style.bottom = obj.bottom + 'px';
-
-                if (obj.bottom < 0) {
-                    obj.visual.remove();
-                    gameObjects.splice(gameObjects.indexOf(obj), 1);
-                }
             });
         }
 
