@@ -110,11 +110,11 @@
             gap: 5px;
         }
 
-        .heart {
+        /* Стилі для зображення серця */
+        .heart-icon {
             width: 25px;
             height: 25px;
-            background: #e74c3c;
-            border-radius: 50%;
+            object-fit: contain;
         }
 
         .doodler {
@@ -122,7 +122,6 @@
             height: 60px; /* Висота робота */
             position: absolute;
             z-index: 5;
-            /* Забираємо фоновий градієнт, оскільки тепер використовуємо зображення */
         }
 
         .doodler img {
@@ -289,14 +288,16 @@
         let isGoingRight = false;
         let gameSpeed = 4;
         let isGameStarted = false;
+        let lastSpeedIncreaseScore = 0;
 
         // Налаштування
         let soundEnabled = true;
         let gyroEnabled = false;
         let leaderboard = [];
         
-        // Посилання на зображення робота
-        const doodlerImageSrc = 'perky_bot.png'; // Це посилання на зображення, яке ви надали
+        // Посилання на зображення робота та серця
+        const doodlerImageSrc = 'perky_bot.png';
+        const heartImageSrc = 'bonus_heart.png'; // Посилання на зображення серця
 
         // Platform клас
         class Platform {
@@ -363,7 +364,6 @@
             doodler = document.createElement('div');
             doodler.classList.add('doodler');
             
-            // Створюємо зображення робота
             const doodlerImg = document.createElement('img');
             doodlerImg.src = doodlerImageSrc;
             doodlerImg.alt = 'Doodler Robot';
@@ -385,8 +385,10 @@
             }
             
             for (let i = 0; i < lives; i++) {
-                const heart = document.createElement('div');
-                heart.classList.add('heart');
+                const heart = document.createElement('img');
+                heart.src = heartImageSrc;
+                heart.alt = 'Life';
+                heart.classList.add('heart-icon'); // Додаємо клас для стилізації
                 document.getElementById('lives-hud').appendChild(heart);
             }
         }
@@ -399,6 +401,11 @@
                 grid.appendChild(scoreElement);
             }
             scoreElement.textContent = score;
+            
+            if (score > 0 && score % 100 === 0 && score > lastSpeedIncreaseScore) {
+                gameSpeed += 0.5;
+                lastSpeedIncreaseScore = score;
+            }
         }
 
         function jump(height = 200) {
@@ -420,7 +427,7 @@
             isJumping = false;
             
             downTimerId = setInterval(function() {
-                doodlerBottomSpace -= 5;
+                doodlerBottomSpace -= gameSpeed; // Швидкість падіння залежить від gameSpeed
                 doodler.style.bottom = doodlerBottomSpace + 'px';
                 
                 if (doodlerBottomSpace <= 0) {
@@ -441,8 +448,8 @@
                     if (
                         (doodlerBottomSpace >= platform.bottom) &&
                         (doodlerBottomSpace <= (platform.bottom + 15)) &&
-                        ((doodlerLeftSpace + 60) >= platform.left) && // 60 - ширина doodler
-                        (doodlerLeftSpace <= (platform.left + 85)) && // 85 - ширина платформи
+                        ((doodlerLeftSpace + 60) >= platform.left) &&
+                        (doodlerLeftSpace <= (platform.left + 85)) &&
                         !isJumping
                     ) {
                         startPoint = doodlerBottomSpace;
@@ -468,10 +475,10 @@
                 // Перевірка колізій з об'єктами
                 gameObjects.forEach((obj, index) => {
                     if (
-                        (doodlerBottomSpace + 60 >= obj.bottom) && // 60 - висота doodler
-                        (doodlerBottomSpace <= (obj.bottom + 50)) && // 50 - приблизна висота об'єкта
-                        ((doodlerLeftSpace + 60) >= obj.left) && // 60 - ширина doodler
-                        (doodlerLeftSpace <= (obj.left + 50)) // 50 - приблизна ширина об'єкта
+                        (doodlerBottomSpace + 60 >= obj.bottom) &&
+                        (doodlerBottomSpace <= (obj.bottom + 50)) &&
+                        ((doodlerLeftSpace + 60) >= obj.left) &&
+                        (doodlerLeftSpace <= (obj.left + 50))
                     ) {
                         if (obj.type === 'bug') {
                             lives--;
@@ -547,17 +554,18 @@
         }
 
         function moveDoodler() {
+             // Збільшена чутливість керування
              if (isGoingLeft) {
-                doodlerLeftSpace -= 5;
+                doodlerLeftSpace -= 9; // Збільшено швидкість руху
             }
             if (isGoingRight) {
-                doodlerLeftSpace += 5;
+                doodlerLeftSpace += 9; // Збільшено швидкість руху
             }
 
             if (doodlerLeftSpace <= 0) {
                 doodlerLeftSpace = 0;
             }
-            if (doodlerLeftSpace >= 320) { // Ширина grid (400) - ширина doodler (60) = 340, але краще 320-330 для запасу
+            if (doodlerLeftSpace >= 320) {
                 doodlerLeftSpace = 320;
             }
 
@@ -603,7 +611,7 @@
             if (!gyroEnabled || isGameOver) return;
             
             const gamma = event.gamma;
-            const threshold = 15;
+            const threshold = 10;
             
             isGoingLeft = false;
             isGoingRight = false;
@@ -677,9 +685,8 @@
             clearInterval(gameLoopId);
             
             document.removeEventListener('keydown', control);
-            window.removeEventListener('deviceorientation', handleDeviceOrientation); // Вимкнути гіроскоп при закінченні гри
+            window.removeEventListener('deviceorientation', handleDeviceOrientation);
             
-            // Додати до рекордів
             leaderboard.push({
                 score: score,
                 date: new Date().toLocaleDateString('uk-UA')
@@ -700,13 +707,13 @@
         }
 
         function startGame() {
-            // Скинути стан гри
             lives = 3;
             score = 0;
             isGameOver = false;
             isGameStarted = true;
+            gameSpeed = 4; // Скидаємо швидкість на початкову при старті нової гри
+            lastSpeedIncreaseScore = 0;
 
-            // Очистити сітку від попередніх елементів
             const gameElements = grid.querySelectorAll('.doodler, .platform, .game-object, #score, #lives-hud, .gyro-info');
             gameElements.forEach(el => el.remove());
             platforms = [];
@@ -716,14 +723,13 @@
             clearInterval(downTimerId);
             clearInterval(gameLoopId);
             
-            // Приховати всі екрани
             document.querySelectorAll('.screen').forEach(screen => {
                 screen.style.display = 'none';
             });
             
-            doodlerLeftSpace = 170; // Початкова позиція Doodler
-            doodlerBottomSpace = 100; // Початкова позиція Doodler
-            startPoint = 100; // Початкова точка для стрибка
+            doodlerLeftSpace = 170;
+            doodlerBottomSpace = 100;
+            startPoint = 100;
             
             createDoodler();
             updateLives();
@@ -738,7 +744,7 @@
                 }
             }, 30);
             
-            jump(); // Перший стрибок для старту гри
+            jump();
             
             document.addEventListener('keydown', control);
             if (gyroEnabled) {
@@ -789,14 +795,12 @@
             }
         }
 
-        // Показати лідерборд при відкритті
         document.addEventListener('click', function(e) {
             if (e.target.onclick && e.target.onclick.toString().includes('leaderboard')) {
                 updateLeaderboard();
             }
         });
 
-        // Початкова ініціалізація
         showScreen('main-menu');
     </script>
 </body>
