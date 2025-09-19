@@ -308,8 +308,8 @@
         // Посилання на зображення
         const doodlerImageSrc = 'perky_bot.png';
         const heartImageSrc = 'bonus_heart.png';
-        const bug1ImageSrc = 'enemy_virus.png'; // Static bug
-        const bug2ImageSrc = 'enemy_bug.png'; // Moving bug
+        const bug1ImageSrc = 'enemy_bug.png'; // Static bug
+        const bug2ImageSrc = 'enemy_virus.png'; // Moving bug
 
         // Platform клас
         class Platform {
@@ -350,7 +350,7 @@
                     this.visual.style.backgroundImage = `url('${bug1ImageSrc}')`;
                 } else if (this.type === 'bug2') {
                     this.visual.style.backgroundImage = `url('${bug2ImageSrc}')`;
-                    this.direction = Math.random() > 0.5 ? 'right' : 'left'; // Для рухомого вірусу
+                    this.direction = Math.random() > 0.5 ? 'right' : 'left';
                 }
                 
                 this.visual.style.backgroundSize = 'contain';
@@ -393,7 +393,7 @@
             doodler.classList.add('doodler');
             
             const doodlerImg = document.createElement('img');
-            doodlerImg.src = 'https://i.imgur.com/k91Wl23.png';
+            doodlerImg.src = doodlerImageSrc;
             doodlerImg.alt = 'Doodler Robot';
             doodler.appendChild(doodlerImg);
 
@@ -535,12 +535,6 @@
                 let newPlatformLeft = Math.random() * 315;
                 let newPlatform = new Platform(newPlatBottom, newPlatformLeft);
                 platforms.push(newPlatform);
-
-                if (Math.random() > 0.7) {
-                    const objectType = Math.random() > 0.5 ? 'bug1' : 'heart';
-                    let newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, objectType);
-                    gameObjects.push(newGameObject);
-                }
             }
         }
 
@@ -576,22 +570,31 @@
                     platforms.push(newPlatform);
 
                     // Додавання об'єктів за новою логікою
-                    if (score % 100 === 0) {
-                        if (heartsSpawned < 1) {
-                            const newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, 'heart');
-                            gameObjects.push(newGameObject);
-                            heartsSpawned++;
-                        } else if (bug1Spawned < 3) {
-                            const newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, 'bug1');
-                            gameObjects.push(newGameObject);
-                            bug1Spawned++;
-                        } else if (bug2Spawned < 5) {
-                            const newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, 'bug2');
-                            gameObjects.push(newGameObject);
-                            bug2Spawned++;
+                    if (score > 5) {
+                        if (score % 100 === 0) {
+                            if (heartsSpawned < 1) {
+                                const newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, 'heart');
+                                gameObjects.push(newGameObject);
+                                heartsSpawned++;
+                            }
                         }
-                    } else {
-                        // Якщо об'єкти за 100 очок вже з'явились, скидаємо лічильники
+                        if (score % 100 === 0) {
+                            if (bug1Spawned < 3) {
+                                const newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, 'bug1');
+                                gameObjects.push(newGameObject);
+                                bug1Spawned++;
+                            }
+                        }
+                        if (score % 100 === 0) {
+                            if (bug2Spawned < 5) {
+                                const newGameObject = new GameObject(newPlatBottom + 20, newPlatform.left + 20, 'bug2');
+                                gameObjects.push(newGameObject);
+                                bug2Spawned++;
+                            }
+                        }
+                    }
+
+                    if (score % 100 !== 0) {
                         heartsSpawned = 0;
                         bug1Spawned = 0;
                         bug2Spawned = 0;
